@@ -236,6 +236,7 @@ void postprocess_mask(Mat &frame, const vector<Mat> &outs)
 
 int main()
 {
+    printf("Starting ball detection\n");
     time_t start, end;
     time(&start);
     std::string file = "/home/dennis/ai_ball_detection/mask_coco/mscoco_label.names";
@@ -270,10 +271,12 @@ int main()
     String modelWeights = "/home/dennis/ai_ball_detection/mask_coco/frozen_inference_graph.pb";
     // Runs on CPU
     // Net net = readNetFromDarknet(config, model);
+    printf("Loading network\n");
     Net net = readNetFromTensorflow(modelWeights, textGraph);
 
     Mat frame, blob, resized;
 
+    printf("Reading Image\n");
     frame = imread("/home/dennis/ai_ball_detection/test_images/test_7.jpg");
     Size size(frame.size[1], frame.size[0]);
     // resize(frame, resized, size);
@@ -286,8 +289,10 @@ int main()
     std::vector<String> outNames(2);
     outNames[0] = "detection_out_final";
     outNames[1] = "detection_masks";
+    printf("Foward network");
     net.forward(outs, outNames);
 
+    printf("Post processing\n");
     postprocess_mask(frame, outs);
     time(&end);
     double elapsed_secs = difftime(end, start);
