@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
+#include <time.h>
 #include <opencv2/dnn.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
@@ -235,7 +236,9 @@ void postprocess_mask(Mat &frame, const vector<Mat> &outs)
 
 int main()
 {
-    std::string file = "/home/dennis/yolo/mask_coco/mscoco_label.names";
+    time_t start, end;
+    time(&start);
+    std::string file = "/home/dennis/ai_ball_detection/mask_coco/mscoco_label.names";
     std::ifstream ifs(file.c_str());
     if (!ifs.is_open())
         CV_Error(Error::StsError, "File " + file + " not found");
@@ -246,7 +249,7 @@ int main()
     }
 
     // Load the colors
-    string colorsFile = "/home/dennis/yolo/mask_coco/colors.txt";
+    string colorsFile = "/home/dennis/ai_ball_detection/mask_coco/colors.txt";
     ifstream colorFptr(colorsFile.c_str());
     while (getline(colorFptr, line))
     {
@@ -261,19 +264,17 @@ int main()
     float scale = 1;
     Scalar mean = 1;
     bool swapRB = true;
-    const String model = "/home/dennis/yolo/yolov3.weights";
-    const String config = "/home/dennis/yolo/yolov3.cfg";
 
     // Give the configuration and weight files for the model
-    String textGraph = "/home/dennis/yolo/mask_coco/mask_rcnn_inception_v2_coco.pbtxt";
-    String modelWeights = "/home/dennis/yolo/mask_coco/frozen_inference_graph.pb";
+    String textGraph = "/home/dennis/ai_ball_detection/mask_coco/mask_rcnn_inception_v2_coco.pbtxt";
+    String modelWeights = "/home/dennis/ai_ball_detection/mask_coco/frozen_inference_graph.pb";
     // Runs on CPU
     // Net net = readNetFromDarknet(config, model);
     Net net = readNetFromTensorflow(modelWeights, textGraph);
 
     Mat frame, blob, resized;
 
-    frame = imread("/home/dennis/yolo/test_7.jpg");
+    frame = imread("/home/dennis/ai_ball_detection/test_images/test_7.jpg");
     Size size(frame.size[1], frame.size[0]);
     // resize(frame, resized, size);
     // imshow("Resized", frame);
@@ -288,7 +289,9 @@ int main()
     net.forward(outs, outNames);
 
     postprocess_mask(frame, outs);
-
+    time(&end);
+    double elapsed_secs = difftime(end, start);
+    printf("Elapsed time to do ball detection: %.2lf\n", elapsed_secs);
     // Write the frame with the detection boxes
     Mat detectedFrame;
     frame.convertTo(detectedFrame, CV_8U);
